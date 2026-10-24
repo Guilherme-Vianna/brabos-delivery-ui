@@ -1,0 +1,15 @@
+export const SESSION_COOKIE = "session";
+export const LOGIN_PATH = "/";
+export const HOME_PATH = "/pedidos";
+export const SIGNUP_PATH = "/cadastro";
+export const PRODUCTS_PATH = "/produtos";
+export const FINANCE_PATH = "/financeiro";
+export const HISTORY_PATH = "/historico";
+export const SETTINGS_PATH = "/configuracoes";
+export const COURIER_PATH = "/entregador";
+export const CUSTOMER_PATH = "/minha-conta";
+export const STORE_PATH = "/e";
+export const NEXT_PARAM = "next";
+export const OWNER_PATHS = [HOME_PATH, SIGNUP_PATH, PRODUCTS_PATH, FINANCE_PATH, HISTORY_PATH, SETTINGS_PATH];
+export const PROTECTED_PATHS = [...OWNER_PATHS, COURIER_PATH, CUSTOMER_PATH];
+export const NEXT_ALLOWED_PATHS = [...PROTECTED_PATHS, STORE_PATH];

@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #121212;
+  --color-surface: #1c1c1c;
+  --color-surface-raised: #272525;
+  --color-ink: #f7f3ef;
+  --color-muted: #aba49f;
+  --color-border: #343030;
+  --color-border-strong: #5a5350;
+
+  --color-primary: #d62828;
+  --color-primary-hover: #e43c3c;
+  --color-primary-soft: #3b1717;
+  --color-on-primary: #ffffff;
+  --color-accent: #ffb703;
+  --color-accent-soft: #3a2e10;
+  --color-slate: #222a35;
+  --color-slate-hover: #2c3644;
+  --color-cream: #f7f3ef;
+  --color-success: #4ade80;
+  --color-success-soft: #14301f;
+  --color-danger: #f87171;
+  --color-danger-strong: #b91c1c;
+  --color-danger-soft: #3b1a1a;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bebas), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 60%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 14px transparent;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.4s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
