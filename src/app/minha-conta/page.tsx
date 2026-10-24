@@ -9,7 +9,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Logo } from "@/components/brand/logo";
 import { CustomerProfileForm } from "@/components/customer/customer-profile-form";
 import { getCustomerProfile, listCustomerOrders } from "@/lib/api/public";
-import { LOGIN_PATH, STORE_PATH } from "@/lib/auth/constants";
+import { SESSION_EXPIRED_PATH, STORE_PATH } from "@/lib/auth/constants";
 import { getSessionUser } from "@/lib/auth/session";
 import { maskPhone } from "@/lib/establishment/validation";
 import { formatPrice } from "@/lib/money";
@@ -41,7 +41,7 @@ export default function CustomerPage() {
 
 async function CustomerContent() {
   const user = await getSessionUser();
-  if (!user) redirect(LOGIN_PATH);
+  if (!user) redirect(SESSION_EXPIRED_PATH);
   const [profile, orders] = await Promise.all([
     getCustomerProfile().catch(() => null),
     listCustomerOrders().catch(() => ({ items: [], total: 0 })),

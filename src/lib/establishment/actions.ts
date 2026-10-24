@@ -15,7 +15,7 @@ import {
   type EstablishmentInput,
 } from "@/lib/api/owner";
 import type { CourierInvite, OpeningDay } from "@/lib/api/types";
-import { HOME_PATH, LOGIN_PATH } from "@/lib/auth/constants";
+import { HOME_PATH, LOGIN_PATH, SESSION_EXPIRED_PATH } from "@/lib/auth/constants";
 import { digits, validateProfile, type ProfileErrors, type ProfileValues } from "./validation";
 
 export type ProfileResult = { ok: true } | { ok: false; fieldErrors: ProfileErrors; formError: string | null };
@@ -37,7 +37,7 @@ export async function registerEstablishmentAction(values: ProfileValues): Promis
   try {
     await registerEstablishment(profilePayload(values));
   } catch (error) {
-    if (apiStatus(error) === 401) redirect(LOGIN_PATH);
+    if (apiStatus(error) === 401) redirect(SESSION_EXPIRED_PATH);
     if (apiStatus(error) === 409) redirect(HOME_PATH);
     return { ok: false, fieldErrors: {}, formError: UNAVAILABLE };
   }

@@ -5,7 +5,7 @@ import { ApiError } from "@/lib/api/client";
 import { getMyEstablishment } from "@/lib/api/owner";
 import { listMyMemberships } from "@/lib/api/public";
 import type { Establishment } from "@/lib/api/types";
-import { COURIER_PATH, LOGIN_PATH, SIGNUP_PATH } from "./constants";
+import { COURIER_PATH, SESSION_EXPIRED_PATH, SIGNUP_PATH } from "./constants";
 import { getSessionUser, type SessionUser } from "./session";
 
 export type CurrentEstablishment =
@@ -14,12 +14,12 @@ export type CurrentEstablishment =
 
 export const loadCurrentEstablishment = cache(async (): Promise<CurrentEstablishment> => {
   const user = await getSessionUser();
-  if (!user) redirect(LOGIN_PATH);
+  if (!user) redirect(SESSION_EXPIRED_PATH);
   try {
     return { user, status: "ok", establishment: await getMyEstablishment() };
   } catch (error) {
     if (error instanceof ApiError) {
-      if (error.status === 401) redirect(LOGIN_PATH);
+      if (error.status === 401) redirect(SESSION_EXPIRED_PATH);
       if (error.status === 404) return { user, status: "missing", establishment: null };
     }
     return { user, status: "unavailable", establishment: null };

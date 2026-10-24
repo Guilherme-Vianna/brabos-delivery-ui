@@ -10,7 +10,7 @@ import { PushBridge } from "@/components/push/push-bridge";
 import { CourierPushButton } from "@/components/push/owner-push-button";
 import { ApiError } from "@/lib/api/client";
 import { listCourierOrders, listMyMemberships } from "@/lib/api/public";
-import { COURIER_PATH, LOGIN_PATH } from "@/lib/auth/constants";
+import { COURIER_PATH, SESSION_EXPIRED_PATH } from "@/lib/auth/constants";
 import { getSessionUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
@@ -29,12 +29,12 @@ export default function CourierPage() {
 }
 
 async function CourierContent() {
-  if (!(await getSessionUser())) redirect(LOGIN_PATH);
+  if (!(await getSessionUser())) redirect(SESSION_EXPIRED_PATH);
   let data;
   try {
     data = await Promise.all([listMyMemberships(), listCourierOrders()]);
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) redirect(LOGIN_PATH);
+    if (error instanceof ApiError && error.status === 401) redirect(SESSION_EXPIRED_PATH);
     return <ApiUnavailable retryHref={COURIER_PATH} />;
   }
   const [memberships, orders] = data;

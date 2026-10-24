@@ -16,7 +16,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { TextField } from "@/components/ui/text-field";
-import { HOME_PATH, NEXT_PARAM } from "@/lib/auth/constants";
+import { EXPIRED_PARAM, HOME_PATH, NEXT_PARAM } from "@/lib/auth/constants";
 import { safeNextPath } from "@/lib/auth/next-path";
 import { createServerSession } from "@/lib/auth/client-session";
 import { authErrorMessage, GENERIC_AUTH_ERROR } from "@/lib/auth/errors";
@@ -31,9 +31,15 @@ import {
   type AuthValues,
 } from "./validation";
 
+function sessionWasRejected() {
+  return new URLSearchParams(window.location.search).has(EXPIRED_PARAM);
+}
+
 function destinationAfterLogin() {
   return safeNextPath(new URLSearchParams(window.location.search).get(NEXT_PARAM)) ?? HOME_PATH;
 }
+
+const SESSION_REJECTED = "Sua sessão expirou ou não foi aceita pelo servidor. Entre de novo para continuar.";
 
 type Status = "restoring" | "idle" | "google" | "email" | "reset" | "redirecting";
 
@@ -73,6 +79,12 @@ export function LoginForm() {
     const auth = getFirebaseAuth();
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       unsubscribe();
+      if (user && sessionWasRejected()) {
+        await signOut(auth);
+        setFormError(SESSION_REJECTED);
+        setStatus("idle");
+        return;
+      }
       if (!user) {
         setStatus("idle");
         return;
