@@ -13,6 +13,7 @@ import type { CheckoutValues } from "@/lib/customer/checkout";
 import { useStoredString } from "@/lib/customer/stored";
 import { formatPrice } from "@/lib/money";
 import { CheckoutPanel } from "./checkout-panel";
+import { FEATURED_ANCHOR, FeaturedShelf } from "./featured-shelf";
 import { MyRecentOrders } from "./my-recent-orders";
 import { ProductSheet } from "./product-sheet";
 
@@ -44,6 +45,9 @@ export function StoreFront({ store, products, closedNote, profile, signedIn }: S
   const [cartOpen, setCartOpen] = useState(false);
   const [query, setQuery] = useState("");
   const totals = cartTotals(lines, { enabled: store.delivery_fee_enabled, value: store.delivery_fee });
+
+  const featured = useMemo(() => products.filter((product) => product.featured), [products]);
+  const showFeatured = featured.length > 0 && !query.trim();
 
   const groups = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("pt-BR");
@@ -130,8 +134,16 @@ export function StoreFront({ store, products, closedNote, profile, signedIn }: S
                 className="h-12 w-full rounded-full border border-border-strong bg-surface pr-4 pl-12 text-ink placeholder:text-muted focus:border-accent focus:outline-2 focus:outline-accent"
               />
             </label>
-            {groups.length > 1 && (
+            {groups.length + (showFeatured ? 1 : 0) > 1 && (
               <nav aria-label="Categorias" className="scrollbar-none flex gap-2 overflow-x-auto">
+                {showFeatured && (
+                  <a
+                    href={`#${FEATURED_ANCHOR}`}
+                    className="inline-flex h-10 shrink-0 items-center rounded-full border border-accent/60 px-4 text-sm text-accent hover:border-accent"
+                  >
+                    Destaques
+                  </a>
+                )}
                 {groups.map(([category]) => (
                   <a
                     key={category}
@@ -144,6 +156,8 @@ export function StoreFront({ store, products, closedNote, profile, signedIn }: S
               </nav>
             )}
           </div>
+
+          {showFeatured && <FeaturedShelf products={featured} onSelect={setSelected} />}
 
           {groups.length === 0 && <p className="text-muted">{products.length ? "Nada encontrado com essa busca." : "O cardápio ainda está sendo montado."}</p>}
 

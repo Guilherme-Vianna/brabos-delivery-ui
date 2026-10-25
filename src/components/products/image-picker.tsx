@@ -3,8 +3,7 @@
 import Image from "next/image";
 import { useId, useState } from "react";
 import { ImageIcon } from "@/components/ui/icons";
-import { requestImageUploadAction } from "@/lib/products/actions";
-import { MAX_UPLOAD_BYTES, resizeImage, uploadWithProgress } from "@/lib/products/image";
+import { uploadErrorMessage, uploadImage } from "./upload-image";
 
 type ImagePickerProps = {
   kind: "product" | "logo";
@@ -23,15 +22,9 @@ export function ImagePicker({ kind, imageUrl, disabled = false, onChange }: Imag
     setError(null);
     setProgress(0);
     try {
-      const blob = await resizeImage(file).catch(() => file);
-      if (blob.size > MAX_UPLOAD_BYTES) throw new Error("A foto passou de 5 MB mesmo depois de reduzida.");
-      const contentType = blob.type || "image/webp";
-      const upload = await requestImageUploadAction(kind, contentType, blob.size);
-      if (!upload.ok) throw new Error(upload.error);
-      await uploadWithProgress(upload.data.upload_url, upload.data.method, upload.data.headers, blob, setProgress);
-      onChange({ key: upload.data.key, url: URL.createObjectURL(blob) });
+      onChange(await uploadImage(kind, file, setProgress));
     } catch (caught) {
-      setError(caught instanceof Error && caught.message.length > 20 ? caught.message : "Não foi possível enviar a foto. Tente de novo.");
+      setError(uploadErrorMessage(caught));
     } finally {
       setProgress(null);
     }

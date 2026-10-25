@@ -84,7 +84,8 @@ export type ProductInput = Partial<
     | "asks_doneness"
     | "active"
     | "position"
-    | "image_key"
+    | "featured"
+    | "image_keys"
   >
 >;
 

@@ -13,7 +13,9 @@ function product(id: string, price: number, extra: Partial<Product> = {}): Produ
     allows_half: true,
     asks_doneness: false,
     position: 0,
+    featured: false,
     image_url: null,
+    image_urls: [],
     ...extra,
   };
 }

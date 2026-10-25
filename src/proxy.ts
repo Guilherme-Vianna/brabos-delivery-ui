@@ -24,6 +24,7 @@ export const config = {
     "/",
     "/pedidos/:path*",
     "/cadastro/:path*",
+    "/primeiros-passos/:path*",
     "/produtos/:path*",
     "/financeiro/:path*",
     "/historico/:path*",

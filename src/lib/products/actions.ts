@@ -1,7 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
-import { apiStatus, handleCommonErrors, requireSession, UNAVAILABLE, type ActionResult } from "@/lib/actions";
+import { apiDetail, apiStatus, handleCommonErrors, requireSession, UNAVAILABLE, type ActionResult } from "@/lib/actions";
 import { createProduct, deleteProduct, requestUpload, updateProduct, type ProductInput } from "@/lib/api/owner";
 import type { Upload } from "@/lib/api/types";
 import { parsePrice } from "@/lib/money";
@@ -21,7 +21,8 @@ export async function saveProductAction(productId: string | null, values: Produc
     ingredients: values.ingredients.trim(),
     allows_half: values.allowsHalf,
     asks_doneness: values.asksDoneness,
-    image_key: values.imageKey,
+    featured: values.featured,
+    image_keys: values.images.map((image) => image.key),
   };
   try {
     if (productId) await updateProduct(productId, payload);
@@ -29,10 +30,13 @@ export async function saveProductAction(productId: string | null, values: Produc
   } catch (error) {
     handleCommonErrors(error);
     const status = apiStatus(error);
+    if (status === 409 && apiDetail(error).includes("featured")) {
+      return { ok: false, fieldErrors: {}, formError: "Você já destacou 3 itens. Tire o destaque de outro item e tente de novo." };
+    }
     if (status === 409) return { ok: false, fieldErrors: { name: duplicateMessage(values.name) }, formError: null };
     if (status === 404) return { ok: false, fieldErrors: {}, formError: "Este produto não existe mais. Feche e atualize a página." };
-    if (status === 422 && values.imageKey) {
-      return { ok: false, fieldErrors: {}, formError: "A foto não pôde ser usada. Remova a foto e tente salvar de novo." };
+    if (status === 422 && values.images.length) {
+      return { ok: false, fieldErrors: {}, formError: "Uma das fotos não pôde ser usada. Remova as fotos e tente salvar de novo." };
     }
     return { ok: false, fieldErrors: {}, formError: UNAVAILABLE };
   }

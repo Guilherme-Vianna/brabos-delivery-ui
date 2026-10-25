@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
@@ -10,6 +9,7 @@ import { TextField } from "@/components/ui/text-field";
 import type { Doneness, Product } from "@/lib/api/types";
 import { buildLine, DONENESS_LABELS, MAX_QUANTITY, needsDoneness, unitPrice, type CartLine } from "@/lib/cart";
 import { formatPrice } from "@/lib/money";
+import { ProductGallery } from "./product-gallery";
 
 type ProductSheetProps = {
   product: Product | null;
@@ -68,11 +68,7 @@ function ProductOptions({
 
   return (
     <div className="flex flex-col gap-5">
-      {product.image_url && (
-        <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-surface-raised">
-          <Image src={product.image_url} alt={product.name} fill unoptimized sizes="(min-width: 640px) 640px, 100vw" className="object-cover" />
-        </div>
-      )}
+      <ProductGallery name={product.name} urls={product.image_urls.length ? product.image_urls : product.image_url ? [product.image_url] : []} />
       {(product.description || product.ingredients) && (
         <div className="text-sm text-muted">
           {product.description && <p>{product.description}</p>}

@@ -220,3 +220,11 @@ export function SearchIcon({ className = "size-5" }: IconProps) {
     </Icon>
   );
 }
+
+export function StarIcon({ className = "size-5", label }: IconProps & { label?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
+      <path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" />
+    </svg>
+  );
+}

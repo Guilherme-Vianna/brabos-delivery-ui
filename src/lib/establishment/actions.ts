@@ -15,7 +15,7 @@ import {
   type EstablishmentInput,
 } from "@/lib/api/owner";
 import type { CourierInvite, OpeningDay } from "@/lib/api/types";
-import { HOME_PATH, LOGIN_PATH, SESSION_EXPIRED_PATH } from "@/lib/auth/constants";
+import { FIRST_STEPS_PATH, HOME_PATH, LOGIN_PATH, SESSION_EXPIRED_PATH } from "@/lib/auth/constants";
 import { digits, validateProfile, type ProfileErrors, type ProfileValues } from "./validation";
 
 export type ProfileResult = { ok: true } | { ok: false; fieldErrors: ProfileErrors; formError: string | null };
@@ -41,7 +41,7 @@ export async function registerEstablishmentAction(values: ProfileValues): Promis
     if (apiStatus(error) === 409) redirect(HOME_PATH);
     return { ok: false, fieldErrors: {}, formError: UNAVAILABLE };
   }
-  redirect(`${HOME_PATH}?bem-vindo=1`);
+  redirect(FIRST_STEPS_PATH);
 }
 
 export async function updateProfileAction(values: ProfileValues): Promise<ProfileResult> {

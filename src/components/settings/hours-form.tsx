@@ -12,17 +12,24 @@ const WEEKDAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "
 
 type Row = { open: boolean; opensAt: string; closesAt: string };
 
-function toRows(days: OpeningDay[]): Row[] {
+function toRows(days: OpeningDay[], openByDefault: boolean): Row[] {
   return WEEKDAYS.map((_, weekday) => {
     const day = days.find((item) => item.weekday === weekday);
     return day
       ? { open: true, opensAt: day.opens_at.slice(0, 5), closesAt: day.closes_at.slice(0, 5) }
-      : { open: false, opensAt: "18:00", closesAt: "23:30" };
+      : { open: openByDefault && days.length === 0, opensAt: "18:00", closesAt: "23:30" };
   });
 }
 
-export function HoursForm({ days }: { days: OpeningDay[] }) {
-  const [rows, setRows] = useState<Row[]>(() => toRows(days));
+type HoursFormProps = {
+  days: OpeningDay[];
+  saveLabel?: string;
+  suggestWeek?: boolean;
+  onSaved?: () => void;
+};
+
+export function HoursForm({ days, saveLabel = "Salvar horários", suggestWeek = false, onSaved }: HoursFormProps) {
+  const [rows, setRows] = useState<Row[]>(() => toRows(days, suggestWeek));
   const [message, setMessage] = useState<{ tone: "error" | "success"; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -48,6 +55,7 @@ export function HoursForm({ days }: { days: OpeningDay[] }) {
     startTransition(async () => {
       const result = await saveHoursAction(payload);
       setMessage(result.ok ? { tone: "success", text: "Horários salvos. Valem para todas as semanas." } : { tone: "error", text: result.error });
+      if (result.ok) onSaved?.();
     });
   }
 
@@ -81,7 +89,7 @@ export function HoursForm({ days }: { days: OpeningDay[] }) {
       </ul>
       {message && <Alert tone={message.tone}>{message.text}</Alert>}
       <Button className="sm:w-auto sm:self-start" loading={pending} loadingLabel="Salvando…" onClick={save}>
-        Salvar horários
+        {saveLabel}
       </Button>
     </div>
   );

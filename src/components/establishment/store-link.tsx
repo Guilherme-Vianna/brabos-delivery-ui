@@ -25,8 +25,7 @@ export function StoreLink({ slug, compact = false }: { slug: string; compact?: b
   if (compact) {
     return (
       <Button variant="secondary" block={false} icon={<ShareIcon />} onClick={share} aria-live="polite">
-        <span className="hidden sm:inline">{copied ? "Link copiado!" : "Link do cardápio"}</span>
-        <span className="sm:hidden">{copied ? "Copiado!" : "Link"}</span>
+        {copied ? "Link copiado!" : "Link do cardápio"}
       </Button>
     );
   }

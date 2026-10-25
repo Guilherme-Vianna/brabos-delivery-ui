@@ -36,10 +36,15 @@ export type Product = {
   allows_half: boolean;
   asks_doneness: boolean;
   position: number;
+  featured: boolean;
   image_url: string | null;
+  image_urls: string[];
   active?: boolean;
-  image_key?: string | null;
+  image_keys?: string[];
 };
+
+export const MAX_PRODUCT_IMAGES = 5;
+export const MAX_FEATURED_PRODUCTS = 3;
 
 export type OrderStatus = "placed" | "accepted" | "delivered" | "cancelled";
 export type PaymentMethod = "cash" | "pix" | "card" | "online";
@@ -147,5 +152,5 @@ export type Upload = {
   method: string;
   headers: Record<string, string>;
   expires_at: string;
-  public_url: string;
+  view_url: string;
 };

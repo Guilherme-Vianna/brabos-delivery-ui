@@ -8,9 +8,11 @@ export type ProductValues = {
   ingredients: string;
   allowsHalf: boolean;
   asksDoneness: boolean;
-  imageKey: string | null;
-  imageUrl: string | null;
+  featured: boolean;
+  images: ProductImage[];
 };
+
+export type ProductImage = { key: string; url: string };
 
 export type ProductErrors = Partial<Record<"name" | "price" | "description" | "ingredients" | "category", string>>;
 

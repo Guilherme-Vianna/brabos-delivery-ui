@@ -35,17 +35,23 @@ Web UI for `brabos-delivery-api` (FastAPI, `../brabos-delivery-api`). Stack mirr
 - Owner (`(app)` group, bottom tabs on mobile, top nav from `md`): `/pedidos` board (Novos / Em andamento / Finalizados
   hoje; 3 columns from `lg`, tabs below). Accept/Entregue take one tap with a 5 s "Desfazer" toast (commit delayed,
   flushed on `pagehide`); cancel asks a reason with chips. Polls every 15 s, refreshes on push, chimes and pulses new
-  orders, shows the count in the tab title. First-run checklist (menu, hours). `/cadastro` registers the shop.
-- `/produtos`: categories, active switch (optimistic), edit sheet (half-and-half, doneness, photo), one-tap suggestions.
+  orders, shows the count in the tab title. First-run checklist (menu, hours) links to the `/primeiros-passos` walkthrough.
+  `/cadastro` registers the shop and then lands on the walkthrough.
+- `/primeiros-passos?passo=cardapio|horarios|divulgar`: 3-step wizard (one-tap menu suggestions, weekly hours form
+  inline, share link + push). Opens on the first pending step; every step can be skipped.
+- `/produtos`: categories, active switch (optimistic), edit sheet (half-and-half, doneness, up to 5
+  photos where the first is the cover, "Destacar no cardápio" limited to 3 items), one-tap suggestions.
 - `/financeiro?periodo=hoje|7d|30d|90d`: KPIs, daily bars, payment mix, top products. `/historico?aba=pedidos|auditoria`.
-- `/configuracoes`: link + push, pause orders (absence presets), delivery fee/min order/auto-accept/online payments,
-  weekly hours, theme colors with live preview + contrast warning, couriers (invite link), profile/logo/slug, account.
+- `/configuracoes` ("Ajustes"): a menu of four blocks that fits one mobile screen (back link to Pedidos); each block is
+  its own page with a back link to Ajustes (`components/settings/blocks.tsx`): `/loja` (link do cardápio + push,
+  profile/logo/slug, theme colors with live preview + contrast warning), `/funcionamento` (weekly hours, pause orders
+  with absence presets, delivery fee/min order/auto-accept/online payments), `/equipe` (couriers, invite link), `/conta`.
 - Public `/e/[slug]`: themed by the shop colors (`lib/color.storeTheme` on the layout wrapper), menu with search and
-  category chips, product sheet, cart in `localStorage` (`brabos:cart:<slug>`, synced with the menu), one-page checkout
+  category chips, "Destaques" shelf (featured items), product sheet with photo carousel, cart in `localStorage` (`brabos:cart:<slug>`, synced with the menu), one-page checkout
   (contact data remembered), sticky cart sidebar from `lg`. `/e/[slug]/pedido/[id]` tracks (polls 20 s), cancels while
   placed, enables push, "Pedir de novo".
 - Courier: `/entregador` (accepted orders, route/call links, two-tap "Entreguei"), `/entregador/convite/[token]`.
-- Images: `components/products/image-picker.tsx` resizes to WebP ≤ 1600 px, asks `POST /uploads` for a presigned URL
+- Images: `components/products/image-picker.tsx` (single) and `image-gallery.tsx` (products) share `upload-image.ts`: resize to WebP ≤ 1600 px, asks `POST /uploads` for a presigned URL
   and PUTs straight to GCS/R2; 503 from the API means storage is not configured. Images render with `next/image unoptimized`.
 
 ## Dates and money
@@ -59,9 +65,9 @@ Web UI for `brabos-delivery-api` (FastAPI, `../brabos-delivery-api`). Stack mirr
 ```
 src/
   app/            page.tsx (login), manifest.ts, api/session/, e/[slug]/ (store, pedido/[id]), entregador/, minha-conta/
-  app/(app)/      layout (header, nav, push bridge), pedidos/, cadastro/, produtos/, financeiro/, historico/, configuracoes/
+  app/(app)/      layout (header, nav, push bridge), pedidos/, cadastro/, primeiros-passos/, produtos/, financeiro/, historico/, configuracoes/
   components/     ui/ (button, text-field, chip, switch, modal, confirm-dialog, alert, icons), app/, auth/, brand/,
-                  orders/, products/, settings/, establishment/, store/, courier/, customer/, push/
+                  orders/, onboarding/, products/, settings/, establishment/, store/, courier/, customer/, push/
   lib/            api/ (client, types, owner, public), auth/, firebase/, push/, actions.ts, cart, color, orders,
                   store-hours, money, time, establishment/ products/ orders/ customer/ courier/ (validation + "use server")
 public/           sw.js (push + notification click), icon-192/512.png

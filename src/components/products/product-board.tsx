@@ -5,19 +5,15 @@ import { useMemo, useOptimistic, useRef, useState, useTransition, type FormEvent
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { BurgerIcon, PlusIcon, SearchIcon } from "@/components/ui/icons";
+import { BurgerIcon, PlusIcon, SearchIcon, StarIcon } from "@/components/ui/icons";
 import { Modal } from "@/components/ui/modal";
 import { Switch } from "@/components/ui/switch";
 import { TextField } from "@/components/ui/text-field";
-import type { Product } from "@/lib/api/types";
+import { MAX_FEATURED_PRODUCTS, type Product } from "@/lib/api/types";
 import { formatPrice, priceInputValue } from "@/lib/money";
-import {
-  deleteProductAction,
-  quickAddProductAction,
-  saveProductAction,
-  setProductActiveAction,
-} from "@/lib/products/actions";
-import { ImagePicker } from "./image-picker";
+import { deleteProductAction, saveProductAction, setProductActiveAction } from "@/lib/products/actions";
+import { ImageGallery } from "./image-gallery";
+import { QuickAdd } from "./quick-add";
 import {
   PRODUCT_SUGGESTIONS,
   validateProduct,
@@ -95,6 +91,12 @@ export function ProductBoard({ products }: { products: Product[] }) {
         ))}
       </div>
 
+      {products.length > 0 && (
+        <p className="text-sm text-muted">
+          Destaques no cardápio: {products.filter((product) => product.featured).length} de {MAX_FEATURED_PRODUCTS}. Marque na edição do item.
+        </p>
+      )}
+
       {suggestions.length > 0 && <QuickAdd suggestions={suggestions} />}
 
       <div className="fixed right-4 bottom-20 z-20 md:static md:max-w-xs">
@@ -107,6 +109,7 @@ export function ProductBoard({ products }: { products: Product[] }) {
         key={editing?.mode === "edit" ? editing.product.id : `new-${editing?.mode === "new" ? editing.category ?? "" : ""}`}
         editing={editing}
         categories={categories}
+        featureSlotFree={products.filter((product) => product.featured && !(editing?.mode === "edit" && product.id === editing.product.id)).length < MAX_FEATURED_PRODUCTS}
         otherNames={products
           .filter((product) => editing?.mode !== "edit" || product.id !== editing.product.id)
           .map((product) => product.name)}
@@ -146,7 +149,10 @@ function ProductRow({ product, onEdit }: { product: Product; onEdit: () => void 
             )}
           </span>
           <span className="min-w-0">
-            <span className="block truncate font-medium text-ink">{product.name}</span>
+            <span className="flex items-center gap-1.5 font-medium text-ink">
+              <span className="truncate">{product.name}</span>
+              {product.featured && <StarIcon className="size-4 shrink-0 text-accent" label="Destaque" />}
+            </span>
             <span className="block text-sm text-accent">
               {formatPrice(product.price)}
               <span className="text-muted">
@@ -168,43 +174,6 @@ function ProductRow({ product, onEdit }: { product: Product; onEdit: () => void 
   );
 }
 
-function QuickAdd({ suggestions }: { suggestions: typeof PRODUCT_SUGGESTIONS }) {
-  const [pending, setPending] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  async function add(item: (typeof PRODUCT_SUGGESTIONS)[number]) {
-    setPending(item.name);
-    setError(null);
-    const result = await quickAddProductAction(item);
-    if (!result.ok) setError(result.error);
-    setPending(null);
-  }
-
-  return (
-    <section aria-labelledby="quick-add" className="flex flex-col gap-3">
-      <h2 id="quick-add" className="text-sm font-medium text-muted">
-        Adicionar com um toque
-      </h2>
-      {error && <Alert tone="error">{error}</Alert>}
-      <div className="flex flex-wrap gap-2">
-        {suggestions.map((item) => (
-          <button
-            key={item.name}
-            type="button"
-            disabled={pending !== null}
-            onClick={() => add(item)}
-            className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-2xl border border-border-strong bg-surface-raised px-4 text-sm hover:border-accent/70 focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-50"
-          >
-            <PlusIcon className="size-4 text-accent" />
-            {pending === item.name ? "Adicionando…" : item.name}
-            <span className="text-muted">{formatPrice(item.price)}</span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function initialValues(editing: Editing): ProductValues {
   if (editing?.mode === "edit") {
     const product = editing.product;
@@ -216,8 +185,8 @@ function initialValues(editing: Editing): ProductValues {
       ingredients: product.ingredients,
       allowsHalf: product.allows_half,
       asksDoneness: product.asks_doneness,
-      imageKey: product.image_key ?? null,
-      imageUrl: product.image_url,
+      featured: product.featured,
+      images: (product.image_keys ?? []).map((key, index) => ({ key, url: product.image_urls[index] })),
     };
   }
   return {
@@ -228,8 +197,8 @@ function initialValues(editing: Editing): ProductValues {
     ingredients: "",
     allowsHalf: false,
     asksDoneness: false,
-    imageKey: null,
-    imageUrl: null,
+    featured: false,
+    images: [],
   };
 }
 
@@ -237,10 +206,11 @@ type ProductDialogProps = {
   editing: Editing;
   categories: string[];
   otherNames: string[];
+  featureSlotFree: boolean;
   onClose: () => void;
 };
 
-function ProductDialog({ editing, categories, otherNames, onClose }: ProductDialogProps) {
+function ProductDialog({ editing, categories, otherNames, featureSlotFree, onClose }: ProductDialogProps) {
   const [values, setValues] = useState<ProductValues>(() => initialValues(editing));
   const [errors, setErrors] = useState<ProductErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -352,12 +322,18 @@ function ProductDialog({ editing, categories, otherNames, onClose }: ProductDial
             description="Cliente escolhe ao pedir"
           />
         </div>
-        <ImagePicker
-          kind="product"
-          imageUrl={values.imageUrl}
-          disabled={pending}
-          onChange={({ key, url }) => setValues((current) => ({ ...current, imageKey: key, imageUrl: url }))}
+        <Switch
+          checked={values.featured}
+          onChange={(checked) => update("featured", checked)}
+          disabled={pending || (!values.featured && !featureSlotFree)}
+          label="Destacar no cardápio"
+          description={
+            featureSlotFree || values.featured
+              ? `Aparece no topo para o cliente. Até ${MAX_FEATURED_PRODUCTS} itens, bom para combos.`
+              : `Você já destacou ${MAX_FEATURED_PRODUCTS} itens. Tire o destaque de outro para escolher este.`
+          }
         />
+        <ImageGallery images={values.images} disabled={pending} onChange={(images) => update("images", images)} />
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
           {editing?.mode === "edit" ? (
             <ConfirmDialog
